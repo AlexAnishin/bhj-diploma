@@ -1,16 +1,28 @@
+const xhrOnloadCallback = (xhr, callback) => {
+    let error = null;
+    if (xhr.status !== 200) {
+        error = new Error(xhr.response.statusText);
+    } else if (xhr.response && !xhr.response.success) {
+        alert(xhr.response.error);
+    }
+    callback(error, xhr.response);
+}
+
 /**
  * Отправляет AJAX GET запрос на сервер
  */
 const createGetRequest = (url, data, callback) => {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url);
+    xhr.responseType = 'json';
+    xhr.onload = function() { xhrOnloadCallback(xhr, callback); };
     xhr.send();
 }
 
 /**
- * Отправляет AJAX POST запрос на сервер
+ * Отправляет AJAX POST/PUT|DELETE запрос на сервер
  */
-const createPostRequest = (url, responseType, data, callback) => {
+const createPostPutDeleteRequest = (url, data, callback) => {
     const formData = new FormData();
     if (!!data) {
         for (const [key, value] of Object.entries(data)) {
@@ -18,17 +30,9 @@ const createPostRequest = (url, responseType, data, callback) => {
         }
     }
     const xhr = new XMLHttpRequest();
-    xhr.responseType = responseType;
+    xhr.responseType = 'json';
     xhr.open('POST', url);
-    xhr.onload = function() {
-        let error = null;
-        if (xhr.status !== 200) {
-            error = new Error(xhr.response.statusText);
-        } else if (!xhr.response.success) {
-            alert(xhr.response.error);
-        }
-        callback(error, xhr.response);
-    };
+    xhr.onload = function() { xhrOnloadCallback(xhr, callback); };
     xhr.send(formData);
 }
 
@@ -40,7 +44,7 @@ const createRequest = (options = {}) => {
     if (options.method === 'GET') {
         createGetRequest(options.url, options.data, options.callback);
     }
-    if (options.method === 'POST') {
-        createPostRequest(options.url, options.responseType, options.data, options.callback);
+    if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
+        createPostPutDeleteRequest(options.url, options.data, options.callback);
     }
 };
