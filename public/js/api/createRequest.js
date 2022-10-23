@@ -12,6 +12,11 @@ const xhrOnloadCallback = (xhr, callback) => {
  * Отправляет AJAX GET запрос на сервер
  */
 const createGetRequest = (url, data, callback) => {
+    const formData = new FormData();
+    if (!!data) {
+        url = url + '?' + Object.keys(data).map(key => key + '=' + data[key]).join('&');
+    }
+
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.responseType = 'json';
@@ -22,7 +27,7 @@ const createGetRequest = (url, data, callback) => {
 /**
  * Отправляет AJAX POST/PUT|DELETE запрос на сервер
  */
-const createPostPutDeleteRequest = (url, data, callback) => {
+const createPostPutDeleteRequest = (method, url, data, callback) => {
     const formData = new FormData();
     if (!!data) {
         for (const [key, value] of Object.entries(data)) {
@@ -31,7 +36,7 @@ const createPostPutDeleteRequest = (url, data, callback) => {
     }
     const xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
-    xhr.open('POST', url);
+    xhr.open(method, url);
     xhr.onload = function() { xhrOnloadCallback(xhr, callback); };
     xhr.send(formData);
 }
@@ -45,6 +50,6 @@ const createRequest = (options = {}) => {
         createGetRequest(options.url, options.data, options.callback);
     }
     if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
-        createPostPutDeleteRequest(options.url, options.data, options.callback);
+        createPostPutDeleteRequest(options.method, options.url, options.data, options.callback);
     }
 };
